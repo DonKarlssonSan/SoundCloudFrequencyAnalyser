@@ -25,7 +25,8 @@
         canvasContext.clearRect(0, 0, canvasWidth, canvasWidth);
         requestAnimationFrame(drawAgain);
         
-        analyser.getByteFrequencyData(dataArray);
+        //analyser.getByteFrequencyData(dataArray);
+        analyser.getByteTimeDomainData(dataArray);
 
         for(var i = 0; i < bufferLength; i++){
           canvasContext.beginPath();
