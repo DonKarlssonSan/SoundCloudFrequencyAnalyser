@@ -1,5 +1,6 @@
 <html>
 <body>
+<!--
 <script src="http://connect.soundcloud.com/sdk.js"></script>
 <script>
 SC.initialize({
@@ -10,5 +11,21 @@ SC.stream("/tracks/177482784", function(sound){
   sound.play();
 });
 </script>
+-->
+<script>
+var context = new webkitAudioContext();
+var audio = new Audio();
+var source;
+// `stream_url` you'd get from 
+// requesting http://api.soundcloud.com/tracks/177482784.json
+var url = 'http://api.soundcloud.com/tracks/177482784/stream?client_id=88eadb2708d8b015244b19bf35e65513';
+
+audio.src = url;
+source = context.createMediaElementSource(audio);
+source.connect(context.destination);
+
+source.mediaElement.play();
+</script>
+  
 </body>
 </html>
