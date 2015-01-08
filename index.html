@@ -2,6 +2,8 @@
 <body>
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
 <button id="startButton" type="button">Start</button> <br/>
+<button id="oscilloscopeButton" type="button">Oscilloscope</button> <br/>
+<button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
 <script>
   (function() {
     var AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -10,6 +12,7 @@
     var canvas = document.querySelector('#theCanvas');
     var canvasContext = canvas.getContext("2d");    
     var dataArray;
+    var analyserMethod = "getByteTimeDomainData";
     
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
@@ -25,8 +28,7 @@
         canvasContext.clearRect(0, 0, canvasWidth, canvasWidth);
         requestAnimationFrame(drawAgain);
         
-        //analyser.getByteFrequencyData(dataArray);
-        analyser.getByteTimeDomainData(dataArray);
+        analyser[analyserMethod](dataArray);
 
         for(var i = 0; i < bufferLength; i++){
           canvasContext.beginPath();
@@ -63,6 +65,12 @@
     }
 
     document.querySelector("#startButton").addEventListener('click', startButton_Clicked);
+    document.querySelector("#oscilloscopeButton").addEventListener('click', function(){
+      analyserMethod = "getByteTimeDomainData";
+    });
+    document.querySelector("#frequencyBarsButton").addEventListener('click', function(){
+      analyserMethod = "getByteFrequencyData";
+    });
 })();
   
 </script>
