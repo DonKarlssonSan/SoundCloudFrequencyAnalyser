@@ -1,30 +1,69 @@
 <html>
 <body>
-<!--
-<script src="http://connect.soundcloud.com/sdk.js"></script>
+<canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
+<button id="startButton" type="button">Start</button> <br/>
 <script>
-SC.initialize({
-  client_id: '88eadb2708d8b015244b19bf35e65513'
-});
+  (function() {
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    var mediaStreamSource;
+    var analyser;
+    var canvas = document.querySelector('#theCanvas');
+    var canvasContext = canvas.getContext("2d");    
+    var dataArray;
+    
+    canvasWidth = canvas.width;
+    canvasHeight = canvas.height;
 
-SC.stream("/tracks/177482784", function(sound){
-  sound.play();
-});
-</script>
--->
-<script>
-var context = new webkitAudioContext();
-var audio = new Audio();
-var source;
-// `stream_url` you'd get from 
-// requesting http://api.soundcloud.com/tracks/177482784.json
-var url = 'http://api.soundcloud.com/tracks/177482784/stream?client_id=88eadb2708d8b015244b19bf35e65513';
+    function startDrawing() {
+      
+      analyser.fftSize = 2048;
+      var bufferLength = analyser.frequencyBinCount;
+      console.log(bufferLength);
+      dataArray = new Uint8Array(bufferLength);
 
-audio.src = url;
-source = context.createMediaElementSource(audio);
-source.connect(context.destination);
+      function drawAgain() {
+        canvasContext.clearRect(0, 0, canvasWidth, canvasWidth);
+        requestAnimationFrame(drawAgain);
+        
+        analyser.getByteFrequencyData(dataArray);
 
-source.mediaElement.play();
+        for(var i = 0; i < bufferLength; i++){
+          canvasContext.beginPath();
+          canvasContext.moveTo(i, 255);
+          canvasContext.lineTo(i, 255 - dataArray[i]);
+          canvasContext.closePath();
+          canvasContext.stroke();
+        }
+      }
+      
+      drawAgain();
+    }
+      
+    function startButton_Clicked() {
+      this.disabled = true;
+      var audioContext = new AudioContext();
+
+      var audio = new Audio();
+      var source;
+      // `stream_url` you'd get from 
+      // requesting http://api.soundcloud.com/tracks/177482784.json
+      var url = 'http://api.soundcloud.com/tracks/177482784/stream?client_id=88eadb2708d8b015244b19bf35e65513';
+      
+      audio.src = url;
+      source = context.createMediaElementSource(audio);
+      source.connect(audioContext.destination);
+      
+      analyser = audioContext.createAnalyser();            
+      source.connect(analyser);
+      
+      source.mediaElement.play();
+      
+      startDrawing();
+    }
+
+    document.querySelector("#startButton").addEventListener('click', startButton_Clicked);
+})();
+  
 </script>
   
 </body>
