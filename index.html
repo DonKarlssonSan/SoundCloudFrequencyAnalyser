@@ -50,7 +50,7 @@
       var url = 'http://api.soundcloud.com/tracks/177482784/stream?client_id=88eadb2708d8b015244b19bf35e65513';
       
       audio.src = url;
-      source = context.createMediaElementSource(audio);
+      source = audioContext.createMediaElementSource(audio);
       source.connect(audioContext.destination);
       
       analyser = audioContext.createAnalyser();            
