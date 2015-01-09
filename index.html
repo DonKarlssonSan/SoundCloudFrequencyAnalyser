@@ -3,7 +3,7 @@
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
 <button id="playButton" type="button">Play</button> <br/>
 Current time: <div id="currentTime">0</div>
-<input id="slider" type="range"> <br/>
+<input id="slider" type="range"></input> <br/>
 <button id="oscilloscopeButton" type="button">Oscilloscope</button> <br/>
 <button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
 <script>
@@ -16,6 +16,7 @@ Current time: <div id="currentTime">0</div>
     var canvasContext = canvas.getContext("2d");    
     var dataArray;
     var analyserMethod = "getByteTimeDomainData";
+    var slider = document.getElementById("slider");
     
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
@@ -62,12 +63,6 @@ Current time: <div id="currentTime">0</div>
       
       audio.play();
 
-      var slider = document.getElementById("slider");
-      slider.addEventListener("onchange", function () {
-        jumpTo(this.value);
-      });
-      slider.max = 3617;
-      slider.value = 0;
       setInterval(function () {
         slider.value = audio.currentTime; 
       }, 3000);
@@ -84,7 +79,12 @@ Current time: <div id="currentTime">0</div>
       if (!audio.readyState) return false;
       audio.currentTime = here;
     };
-    
+    slider.addEventListener("onchange", function () {
+      jumpTo(this.value);
+    });
+    slider.max = 3617;
+    slider.value = 0;
+
     document.getElementById("playButton").addEventListener('click', startButton_Clicked);
     
     document.getElementById("oscilloscopeButton").addEventListener('click', function(){
@@ -94,7 +94,6 @@ Current time: <div id="currentTime">0</div>
     document.getElementById("frequencyBarsButton").addEventListener('click', function(){
       analyserMethod = "getByteFrequencyData";
     });
-    
 })();
   
 </script>
