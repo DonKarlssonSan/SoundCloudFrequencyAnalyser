@@ -79,7 +79,7 @@ Current time: <div id="currentTime">0</div>
       if (!audio.readyState) return false;
       audio.currentTime = here;
     };
-    slider.addEventListener("onchange", function () {
+    slider.addEventListener("change", function () {
       jumpTo(this.value);
     });
     slider.max = 3617;
