@@ -9,6 +9,7 @@ Current time: <div id="currentTime">0</div>
 <script>
   (function() {
     var AudioContext = window.AudioContext || window.webkitAudioContext;
+    var audio = new Audio();
     var mediaStreamSource;
     var analyser;
     var canvas = document.querySelector('#theCanvas');
@@ -47,8 +48,6 @@ Current time: <div id="currentTime">0</div>
     function startButton_Clicked() {
       this.disabled = true;
       var audioContext = new AudioContext();
-
-      var audio = new Audio();
       var source;
       // `stream_url` you'd get from 
       // requesting http://api.soundcloud.com/tracks/177482784.json
@@ -62,6 +61,21 @@ Current time: <div id="currentTime">0</div>
       source.connect(analyser);
       
       audio.play();
+
+      var slider = document.getElementById("slider");
+      slider.addEventListener("onchange", function () {
+        jumpTo(this.value);
+      });
+      slider.max = 3617;
+      slider.value = 0;
+      setInterval(function () {
+        slider.value = audio.currentTime; 
+      }, 3000);
+      
+      var currentTime = document.getElementById("currentTime");
+      setInterval(function () {
+        currentTime.innerHTML = audio.currentTime; 
+      }, 800);
       
       startDrawing();
     }
@@ -81,20 +95,6 @@ Current time: <div id="currentTime">0</div>
       analyserMethod = "getByteFrequencyData";
     });
     
-    var slider = document.getElementById("slider");
-    slider.addEventListener("onchange", function () {
-      jumpTo(this.value);
-    });
-    slider.max = 3617;
-    setInterval(function () {
-      slider.value = audio.currentTime; 
-    }, 3000);
-    
-    var currentTime = document.getElementById("currentTime");
-    setInterval(function () {
-      currentTime.innerHTML = audio.currentTime; 
-    }, 800);
-
 })();
   
 </script>
