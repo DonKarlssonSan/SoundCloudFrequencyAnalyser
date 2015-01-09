@@ -1,7 +1,9 @@
 <html>
 <body>
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
-<button id="startButton" type="button">Start</button> <br/>
+<button id="playButton" type="button">Play</button> <br/>
+Current time: <div id="currentTime">0</div>
+<input id="slider" type="range" onchange="jumpTo(this.value)" max="3617"> <br/>
 <button id="oscilloscopeButton" type="button">Oscilloscope</button> <br/>
 <button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
 <script>
@@ -61,13 +63,25 @@
       
       audio.play();
       
+      document.getElementById("currentTime");
+      audio.addEventListener('timeupdate', function() {
+        currentTime.innerHTML = audio.currentTime;
+      });
+      
       startDrawing();
     }
-
-    document.querySelector("#startButton").addEventListener('click', startButton_Clicked);
+    
+    function jumpTo(here) {
+      if (!audio.readyState) return false;
+      audio.currentTime = here;
+    };
+    
+    document.querySelector("#playButton").addEventListener('click', startButton_Clicked);
+    
     document.querySelector("#oscilloscopeButton").addEventListener('click', function(){
       analyserMethod = "getByteTimeDomainData";
     });
+    
     document.querySelector("#frequencyBarsButton").addEventListener('click', function(){
       analyserMethod = "getByteFrequencyData";
     });
