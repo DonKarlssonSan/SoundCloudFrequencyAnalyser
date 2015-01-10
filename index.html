@@ -6,6 +6,20 @@ Current time: <div id="currentTime">0</div>
 <input id="slider" type="range"></input> <br/>
 <button id="oscilloscopeButton" type="button">Oscilloscope</button> <br/>
 <button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
+<label>Artist: 
+  <a id="artistUrl">
+    <div id="artistName"></div>
+    <img id="artistAvatar"></img>
+  </a>
+</label>
+<br/>  
+<label>Track:
+  <a id="trackUrl">
+    <div id="trackName"></div>
+    <img id="trackArt"></img>
+  </a>
+</label>
+
 <script>
   (function() {
     var AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -17,9 +31,40 @@ Current time: <div id="currentTime">0</div>
     var dataArray;
     var analyserMethod = "getByteTimeDomainData";
     var slider = document.getElementById("slider");
+    var streamUrl;
     
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
+    
+    var get = function(url, callback) {
+      var request = new XMLHttpRequest();
+      request.onreadystatechange = function() { 
+        if (request.readyState === 4 && request.status === 200) {
+          callback(request.responseText);
+        }
+      }
+  
+      request.open("GET", url, true);            
+      request.send(null);
+    }
+  
+    var clientParameter = "client_id=88eadb2708d8b015244b19bf35e65513"
+    var trackPermalinkUrl = "http://soundcloud.com/the-outsider/through-time-space-mix";
+   
+    get("http://api.soundcloud.com/resolve.json?url=" +  trackPermalinkUrl + "&" + clientParameter,
+      function (response) {
+        var trackInfo = JSON.parse(response);
+        
+        document.getElementById("artistUrl").href = trackInfo.user.permalink_url;
+        document.getElementById("artistAvatar").src = trackInfo.user.avatar_url;
+        document.getElementById("artistName").innerHTML = trackInfo.user.username;
+      
+        document.getElementById("trackUrl").href = trackInfo.permalink_url;
+        document.getElementById("trackArt").src = trackInfo.artwork_url;
+        document.getElementById("trackName").innerHTML = trackInfo.title;
+        streamUrl = trackInfo.stream_url + "?" + clientParameter;
+      }
+    );
 
     function startDrawing() {
       
@@ -50,11 +95,8 @@ Current time: <div id="currentTime">0</div>
       this.disabled = true;
       var audioContext = new AudioContext();
       var source;
-      // `stream_url` you'd get from 
-      // requesting http://api.soundcloud.com/tracks/177482784.json
-      var url = 'http://api.soundcloud.com/tracks/177482784/stream?client_id=88eadb2708d8b015244b19bf35e65513';
-      
-      audio.src = url;
+
+      audio.src = streamUrl;
       source = audioContext.createMediaElementSource(audio);
       source.connect(audioContext.destination);
       
