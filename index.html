@@ -1,11 +1,12 @@
 <html>
 <body>
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
-<button id="playButton" type="button">Play</button> <br/>
-Current time: <div id="currentTime">0</div>
-<input id="slider" type="range"></input> <br/>
-<button id="oscilloscopeButton" type="button">Oscilloscope</button> <br/>
+<button id="oscilloscopeButton" type="button">Oscilloscope</button>
 <button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
+<button id="playButton" type="button" ><h1>Play Track!</h1></button> <br/>
+Current time: <div id="currentTime">0</div>
+<input id="slider" type="range" value="0"></input> <br/>
+<input id="trackUrlSearch" type="url" placeholder="URL of SoundCloud track" /> <button id="findButton">Find</button> <br/> 
 <label>Artist: 
   <a id="artistUrl">
     <div id="artistName"></div>
@@ -22,21 +23,34 @@ Current time: <div id="currentTime">0</div>
 
 <script>
   (function() {
-    var AudioContext = window.AudioContext || window.webkitAudioContext;
-    var audio = new Audio();
-    var mediaStreamSource;
+    var AudioContext;
+    var audio;
+    var audioContext;
+    var source;
     var analyser;
+      
     var canvas = document.querySelector('#theCanvas');
     var canvasContext = canvas.getContext("2d");    
     var dataArray;
     var analyserMethod = "getByteTimeDomainData";
     var slider = document.getElementById("slider");
     var streamUrl;
+    var isIdle = true;
     
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
     
-    var get = function(url, callback) {
+    function initAudio() {
+      AudioContext = window.AudioContext || window.webkitAudioContext;
+      audio = new Audio();
+      audioContext = new AudioContext();
+      source = audioContext.createMediaElementSource(audio);
+      source.connect(audioContext.destination);
+      analyser = audioContext.createAnalyser();            
+      source.connect(analyser);
+    };
+    
+    function get(url, callback) {
       var request = new XMLHttpRequest();
       request.onreadystatechange = function() { 
         if (request.readyState === 4 && request.status === 200) {
@@ -54,30 +68,71 @@ Current time: <div id="currentTime">0</div>
     // Makes it possible to add a text box for pasting any track URL.
     var trackPermalinkUrl = "http://soundcloud.com/the-outsider/through-time-space-mix";
    
-    get("http://api.soundcloud.com/resolve.json?url=" +  trackPermalinkUrl + "&" + clientParameter,
-      function (response) {
-        var trackInfo = JSON.parse(response);
-        
-        document.getElementById("artistUrl").href = trackInfo.user.permalink_url;
-        document.getElementById("artistAvatar").src = trackInfo.user.avatar_url;
-        document.getElementById("artistName").innerHTML = trackInfo.user.username;
-      
-        document.getElementById("trackUrl").href = trackInfo.permalink_url;
-        document.getElementById("trackArt").src = trackInfo.artwork_url;
-        document.getElementById("trackName").innerHTML = trackInfo.title;
-        streamUrl = trackInfo.stream_url + "?" + clientParameter;
-      }
-    );
+    function findTrack() {
+      get("http://api.soundcloud.com/resolve.json?url=" +  trackPermalinkUrl + "&" + clientParameter,
+        function (response) {
+          var trackInfo = JSON.parse(response);
 
-    function startDrawing() {
+          slider.max = trackInfo.duration / 1000;
+          document.getElementById("artistUrl").href = trackInfo.user.permalink_url;
+          document.getElementById("artistAvatar").src = trackInfo.user.avatar_url;
+          document.getElementById("artistName").innerHTML = trackInfo.user.username;
+
+          document.getElementById("trackUrl").href = trackInfo.permalink_url;
+          if(trackInfo.artwork_url) {
+            document.getElementById("trackArt").src = trackInfo.artwork_url;
+          } else {
+            document.getElementById("trackArt").src = "";
+          }
+          document.getElementById("trackName").innerHTML = trackInfo.title;
+          streamUrl = trackInfo.stream_url + "?" + clientParameter;
+        }
+      );
+    };
+
+    function startIdleAnimation() {
+      var amplitude = 100;
+      var phase = 0;
+      var isIncreasing = false;
+
+      function drawIdleAnimation() {
+        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+        if(isIdle) {
+          requestAnimationFrame(drawIdleAnimation);
+        }
+        canvasContext.beginPath();
+        //canvasContext.moveTo(0, Math.sin(1/50));
+        for(var x = 0; x < canvasWidth; x++){
+          canvasContext.lineTo(x, Math.sin((x+phase)/50)*amplitude + 100);
+        }
+        //canvasContext.closePath();
+        canvasContext.stroke();
+        phase++;
+        if(amplitude > 100) {
+          isIncreasing = false;
+        } else if(amplitude < 1) {
+          isIncreasing = true;
+        }
+        
+        if(isIncreasing) {
+          amplitude++;
+        } else {
+          amplitude--;
+        }
+      }
       
+      drawIdleAnimation();
+    }
+    
+    function startDrawing() {
+      isIdle = false;
       analyser.fftSize = 2048;
       var bufferLength = analyser.frequencyBinCount;
       console.log(bufferLength);
       dataArray = new Uint8Array(bufferLength);
 
       function drawAgain() {
-        canvasContext.clearRect(0, 0, canvasWidth, canvasWidth);
+        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
         requestAnimationFrame(drawAgain);
         
         analyser[analyserMethod](dataArray);
@@ -95,18 +150,9 @@ Current time: <div id="currentTime">0</div>
     }
       
     function startButton_Clicked() {
-      this.disabled = true;
-      var audioContext = new AudioContext();
-      var source;
-
       audio.src = streamUrl;
-      source = audioContext.createMediaElementSource(audio);
-      source.connect(audioContext.destination);
-      
-      analyser = audioContext.createAnalyser();            
-      source.connect(analyser);
-      
       audio.play();
+      slider.value = 0;
 
       setInterval(function () {
         slider.value = audio.currentTime; 
@@ -130,8 +176,6 @@ Current time: <div id="currentTime">0</div>
     slider.addEventListener("change", function () {
       jumpTo(this.value);
     });
-    slider.max = 3617;
-    slider.value = 0;
 
     document.getElementById("playButton").addEventListener('click', startButton_Clicked);
     
@@ -142,6 +186,15 @@ Current time: <div id="currentTime">0</div>
     document.getElementById("frequencyBarsButton").addEventListener('click', function(){
       analyserMethod = "getByteFrequencyData";
     });
+    
+    document.getElementById("findButton").addEventListener('click', function(){
+      trackPermalinkUrl = document.getElementById("trackUrlSearch").value;
+      findTrack();
+    });
+    
+    startIdleAnimation();
+    findTrack();
+    initAudio();
 })();
   
 </script>
