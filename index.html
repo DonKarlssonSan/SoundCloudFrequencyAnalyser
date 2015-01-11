@@ -49,6 +49,9 @@ Current time: <div id="currentTime">0</div>
     }
   
     var clientParameter = "client_id=88eadb2708d8b015244b19bf35e65513"
+    
+    // Basing everything on the track's permalink URL. That is what the user knows.
+    // Makes it possible to add a text box for pasting any track URL.
     var trackPermalinkUrl = "http://soundcloud.com/the-outsider/through-time-space-mix";
    
     get("http://api.soundcloud.com/resolve.json?url=" +  trackPermalinkUrl + "&" + clientParameter,
@@ -107,11 +110,14 @@ Current time: <div id="currentTime">0</div>
 
       setInterval(function () {
         slider.value = audio.currentTime; 
-      }, 3000);
+      }, 3000); 
+      // Using three seconds so the user can change the value of
+      // the slider. Too short interval will cause the automatic
+      // updating to steal the control from the user.
       
       var currentTime = document.getElementById("currentTime");
       setInterval(function () {
-        currentTime.innerHTML = audio.currentTime; 
+        currentTime.innerHTML = Math.round(audio.currentTime); 
       }, 800);
       
       startDrawing();
