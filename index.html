@@ -1,6 +1,7 @@
+<!DOCTYPE html>
 <html>
 <body>
-<a href="http://soundcloud.com" ><img src="powered_by_black-ee7e351d64511ecea75c6c17ca30064f.png"></img></a> <br/>
+<a href="http://soundcloud.com" ><img src="powered_by_black-ee7e351d64511ecea75c6c17ca30064f.png" /></a> <br/>
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
 <button id="oscilloscopeButton" type="button">Oscilloscope</button>
 <button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
@@ -12,14 +13,14 @@
 <label>Artist: 
   <a id="artistUrl">
     <span id="artistName"></span><br/>
-    <img id="artistAvatar"></img>
+    <img id="artistAvatar" />
   </a>
 </label>
 <br/>  
 <label>Track:
   <a id="trackUrl">
     <span id="trackName"></span><br/>
-    <img id="trackArt"></img>
+    <img id="trackArt" />
   </a>
 </label>
 
@@ -39,8 +40,8 @@
     var streamUrl;
     var isIdle = true;
     
-    canvasWidth = canvas.width;
-    canvasHeight = canvas.height;
+    var canvasWidth = canvas.width;
+    var canvasHeight = canvas.height;
     
     function initAudio() {
       AudioContext = window.AudioContext || window.webkitAudioContext;
