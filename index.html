@@ -1,23 +1,24 @@
 <html>
 <body>
-<img src="powered_by_black-ee7e351d64511ecea75c6c17ca30064f.png"></img> <br/>
+<a href="http://soundcloud.com" ><img src="powered_by_black-ee7e351d64511ecea75c6c17ca30064f.png"></img></a> <br/>
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
 <button id="oscilloscopeButton" type="button">Oscilloscope</button>
 <button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
-<button id="playButton" type="button" ><h1>Play Track!</h1></button> <br/>
-Current time: <div id="currentTime">0</div>
-<input id="slider" type="range" value="0"></input> <br/>
+<button id="playButton" type="button" ><h1>&#9658;Play Track!</h1></button> <br/>
+<span id="currentTime">00:00:00</span>
+<input id="slider" type="range" value="0"></input>
+<span id="totalTime">00:00:00</span> <br/>
 <input id="trackUrlSearch" type="url" placeholder="URL of SoundCloud track" /> <button id="findButton">Find</button> <br/> 
 <label>Artist: 
   <a id="artistUrl">
-    <div id="artistName"></div>
+    <span id="artistName"></span><br/>
     <img id="artistAvatar"></img>
   </a>
 </label>
 <br/>  
 <label>Track:
   <a id="trackUrl">
-    <div id="trackName"></div>
+    <span id="trackName"></span><br/>
     <img id="trackArt"></img>
   </a>
 </label>
@@ -75,6 +76,7 @@ Current time: <div id="currentTime">0</div>
           var trackInfo = JSON.parse(response);
 
           slider.max = trackInfo.duration / 1000;
+          document.getElementById("totalTime").innerHTML = millisecondsToHuman(trackInfo.duration);
           document.getElementById("artistUrl").href = trackInfo.user.permalink_url;
           document.getElementById("artistAvatar").src = trackInfo.user.avatar_url;
           document.getElementById("artistName").innerHTML = trackInfo.user.username;
@@ -102,11 +104,9 @@ Current time: <div id="currentTime">0</div>
           requestAnimationFrame(drawIdleAnimation);
         }
         canvasContext.beginPath();
-        //canvasContext.moveTo(0, Math.sin(1/50));
         for(var x = 0; x < canvasWidth; x++){
           canvasContext.lineTo(x, Math.sin((x+phase)/50)*amplitude + 100);
         }
-        //canvasContext.closePath();
         canvasContext.stroke();
         phase++;
         if(amplitude > 100) {
@@ -164,8 +164,8 @@ Current time: <div id="currentTime">0</div>
       
       var currentTime = document.getElementById("currentTime");
       setInterval(function () {
-        currentTime.innerHTML = Math.round(audio.currentTime); 
-      }, 800);
+        currentTime.innerHTML = millisecondsToHuman(audio.currentTime * 1000); 
+      }, 1000);
       
       startDrawing();
     }
@@ -174,9 +174,16 @@ Current time: <div id="currentTime">0</div>
       if (!audio.readyState) return false;
       audio.currentTime = here;
     };
+    
     slider.addEventListener("change", function () {
       jumpTo(this.value);
     });
+    
+    function millisecondsToHuman(milliseconds) {
+      var date = new Date(null);
+      date.setMilliseconds(milliseconds);
+      return date.toISOString().substr(11, 8);
+    };
 
     document.getElementById("playButton").addEventListener('click', startButton_Clicked);
     
