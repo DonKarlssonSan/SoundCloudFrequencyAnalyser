@@ -5,7 +5,7 @@
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
 <button id="oscilloscopeButton" type="button">Oscilloscope</button>
 <button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
-<button id="playButton" type="button" ><h1>&#9658;Play Track!</h1></button> <br/>
+<button id="playButton" type="button" ><h1>&#9658; Play Track!</h1></button> <br/>
 <span id="currentTime">00:00:00</span>
 <input id="slider" type="range" value="0" />
 <span id="totalTime">00:00:00</span> <br/>
@@ -95,7 +95,9 @@
     };
 
     function startIdleAnimation() {
+      // Makes the sine wave height increase and decrease
       var amplitude = 100;
+      // Makes the sine wave move to the left
       var phase = 0;
       var isIncreasing = false;
 
@@ -106,7 +108,7 @@
         }
         canvasContext.beginPath();
         for(var x = 0; x < canvasWidth; x++){
-          canvasContext.lineTo(x, Math.sin((x+phase)/50)*amplitude + 100);
+          canvasContext.lineTo(x, Math.sin((x+phase)/50)*amplitude + 120);
         }
         canvasContext.stroke();
         phase++;
@@ -127,6 +129,7 @@
     }
     
     function startDrawing() {
+      // Stop drawing idle animation
       isIdle = false;
       analyser.fftSize = 2048;
       var bufferLength = analyser.frequencyBinCount;
