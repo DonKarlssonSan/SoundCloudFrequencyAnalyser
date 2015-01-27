@@ -4,7 +4,8 @@
 <a href="http://soundcloud.com" ><img src="powered_by_black-ee7e351d64511ecea75c6c17ca30064f.png" /></a> <br/>
 <canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
 <button id="oscilloscopeButton" type="button">Oscilloscope</button>
-<button id="frequencyBarsButton" type="button">Frequency bars</button> <br/>
+<button id="frequencyBarsButton" type="button">Frequency bars</button>
+<button id="circlesButton" type="button">Circles</button> <br/>
 <button id="playButton" type="button" ><h1>&#9658; Play Track!</h1></button> <br/>
 <span id="currentTime">00:00:00</span>
 <input id="slider" type="range" value="0" />
@@ -135,6 +136,9 @@
       var bufferLength = analyser.frequencyBinCount;
       console.log(bufferLength);
       dataArray = new Uint8Array(bufferLength);
+      canvasContext.fillStyle = 'rgba(0, 0, 0, 1)';
+      canvasContext.lineWidth = 1;
+      canvasContext.strokeStyle = 'rgba(0, 0, 0, 1)';
 
       function drawAgain() {
         canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -152,6 +156,34 @@
       }
       
       drawAgain();
+    }
+      
+    function circles() {
+      // Stop drawing idle animation
+      isIdle = false;
+      analyser.fftSize = 64;
+      var bufferLength = analyser.frequencyBinCount;
+      console.log(bufferLength);
+      dataArray = new Uint8Array(bufferLength);
+      canvasContext.fillStyle = 'rgba(0, 200, 200, 0.8)';
+      canvasContext.lineWidth = 8;
+      canvasContext.strokeStyle = 'rgba(0, 150, 150, 0.8)';
+
+      function circlesAgain() {
+        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+        requestAnimationFrame(circlesAgain);
+        
+        analyser[analyserMethod](dataArray);
+
+        for(var i = 0; i < bufferLength; i++){
+          canvasContext.beginPath();
+          canvasContext.arc(64+i*32, 128, dataArray[i]/2, 0, 2 * Math.PI, false);
+          canvasContext.fill();
+          canvasContext.stroke();
+        }
+      }
+      
+      circlesAgain();
     }
       
     function startButton_Clicked() {
@@ -193,10 +225,17 @@
     
     document.getElementById("oscilloscopeButton").addEventListener('click', function(){
       analyserMethod = "getByteTimeDomainData";
+      startDrawing();
     });
     
     document.getElementById("frequencyBarsButton").addEventListener('click', function(){
       analyserMethod = "getByteFrequencyData";
+      startDrawing();
+    });
+    
+    document.getElementById("circlesButton").addEventListener('click', function(){
+      analyserMethod = "getByteFrequencyData";
+      circles();
     });
     
     document.getElementById("findButton").addEventListener('click', function(){
