@@ -47,6 +47,7 @@
     function initAudio() {
       AudioContext = window.AudioContext || window.webkitAudioContext;
       audio = new Audio();
+      audio.crossOrigin = "anonymous";
       audioContext = new AudioContext();
       source = audioContext.createMediaElementSource(audio);
       source.connect(audioContext.destination);
