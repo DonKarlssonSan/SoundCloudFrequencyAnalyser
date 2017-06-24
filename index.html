@@ -1,263 +1,255 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <style>
+@import url(https://fonts.googleapis.com/css?family=Jaldi);
+
+html, * {
+  font-family: 'Jaldi', sans-serif; 
+}
+
+.float {
+  position: absolute;
+}
+
+.flex-container {
+  display: inline-flex; 
+  flex-direction: column;
+  flex-wrap: wrap;
+  height: calc(100vh - 320px);
+}
+
+div {
+  margin: 10px;
+}
+    </style>
+  </head>
 <body>
-<a href="http://soundcloud.com" ><img src="powered_by_black-ee7e351d64511ecea75c6c17ca30064f.png" /></a> <br/>
-<canvas id="theCanvas" width="1024" height="256"></canvas> <br/>
-<button id="oscilloscopeButton" type="button">Oscilloscope</button>
-<button id="frequencyBarsButton" type="button">Frequency bars</button>
-<button id="circlesButton" type="button">Circles</button> <br/>
-<button id="playButton" type="button" ><h1>&#9658; Play Track!</h1></button> <br/>
-<span id="currentTime">00:00:00</span>
-<input id="slider" type="range" value="0" />
-<span id="totalTime">00:00:00</span> <br/>
-<input id="trackUrlSearch" type="url" placeholder="URL of SoundCloud track" /> <button id="findButton">Find</button> <br/> 
-<label>Artist: 
-  <a id="artistUrl">
-    <span id="artistName"></span><br/>
-    <img id="artistAvatar" />
+  <a href="https://soundcloud.com" class="float">
+    <img src="https://developers.soundcloud.com/assets/powered_by_black-4339b4c3c9cf88da9bfb15a16c4f6914.png" />
   </a>
-</label>
-<br/>  
-<label>Track:
-  <a id="trackUrl">
-    <span id="trackName"></span><br/>
-    <img id="trackArt" />
-  </a>
-</label>
+  <canvas id="theCanvas" width="1024" height="256" title="Press Play!"></canvas>
+  <div class="flex-container">
+    <div>
+      <button id="oscilloscopeButton" type="button" class="btn btn-default">Oscilloscope</button>
+      <button id="frequencyBarsButton" type="button" class="btn btn-default">Frequency bars</button>
+    </div>
+    <div>
+      <button id="playButton" type="button" class="btn btn-primary"><h1>&#9658; Play Track!</h1></button> 
+    </div>
+    <div>
+      <span id="currentTime">00:00:00</span>
+      <input id="slider" type="range" value="0"/>
+      <span id="totalTime">00:00:00</span>
+    </div>
+    <div>
+      <input id="trackUrlSearch" type="url" placeholder="URL of SoundCloud track" /> 
+      <button id="findButton" class="btn btn-default">Find</button>
+    </div>
+    <div>
+      <label>Artist: 
+        <a id="artistUrl">
+          <span id="artistName"></span><br/>
+          <img id="artistAvatar" />
+        </a>
+      </label>
+    </div>
+    <div>
+      <label>Track:
+        <a id="trackUrl">
+          <span id="trackName"></span><br/>
+          <img id="trackArt" />
+        </a>
+      </label>
+    </div>
+  </div>
 
 <script>
-  (function() {
-    var AudioContext;
-    var audio;
-    var audioContext;
-    var source;
-    var analyser;
-      
-    var canvas = document.querySelector('#theCanvas');
-    var canvasContext = canvas.getContext("2d");    
-    var dataArray;
-    var analyserMethod = "getByteTimeDomainData";
-    var slider = document.getElementById("slider");
-    var streamUrl;
-    var isIdle = true;
-    
-    var canvasWidth = canvas.width;
-    var canvasHeight = canvas.height;
-    
-    function initAudio() {
-      AudioContext = window.AudioContext || window.webkitAudioContext;
-      audio = new Audio();
-      audio.crossOrigin = "anonymous";
-      audioContext = new AudioContext();
-      source = audioContext.createMediaElementSource(audio);
-      source.connect(audioContext.destination);
-      analyser = audioContext.createAnalyser();            
-      source.connect(analyser);
-    };
-    
-    function get(url, callback) {
-      var request = new XMLHttpRequest();
-      request.onreadystatechange = function() { 
-        if (request.readyState === 4 && request.status === 200) {
-          callback(request.responseText);
-        }
+(function() {
+  var AudioContext;
+  var audio;
+  var audioContext;
+  var source;
+  var analyser;
+
+  var canvas = document.getElementById("theCanvas");
+  var canvasContext = canvas.getContext("2d");    
+  var dataArray;
+  var analyserMethod = "getByteTimeDomainData";
+  var slider = document.getElementById("slider");
+  var streamUrl;
+  var isIdle = true;
+
+  var canvasWidth = canvas.width;
+  var canvasHeight = canvas.height;
+
+  function initAudio(streamUrl) {
+    AudioContext = window.AudioContext || window.webkitAudioContext;
+    audio = new Audio();
+    audio.crossOrigin = "anonymous";
+    audioContext = new AudioContext();
+    source = audioContext.createMediaElementSource(audio);
+    source.connect(audioContext.destination);
+    analyser = audioContext.createAnalyser();            
+    source.connect(analyser);
+  };
+
+  function get(url, callback) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() { 
+      if (request.readyState === 4 && request.status === 200) {
+        callback(request.responseText);
       }
-  
-      request.open("GET", url, true);            
-      request.send(null);
     }
-  
-    var clientParameter = "client_id=88eadb2708d8b015244b19bf35e65513"
-    
-    // Basing everything on the track's permalink URL. That is what the user knows.
-    // Makes it possible to add a text box for pasting any track URL.
-    var trackPermalinkUrl = "http://soundcloud.com/the-outsider/through-time-space-mix";
-   
-    function findTrack() {
-      get("http://api.soundcloud.com/resolve.json?url=" +  trackPermalinkUrl + "&" + clientParameter,
+
+    request.open("GET", url, true);            
+    request.send(null);
+  }
+
+  var clientParameter = "client_id=88eadb2708d8b015244b19bf35e65513"
+
+  // Basing everything on the track's permalink URL. That is what the user knows.
+  // Makes it possible to use the text box for pasting any track URL.
+  // The Outsider is a friend of mine. 
+  // The majority of his tracks are on Mixcloud:
+  // https://www.mixcloud.com/outsider_music/
+  var trackPermalinkUrl = "https://soundcloud.com/the-outsider/the-outsider-death-by-melody";
+
+  function findTrack() {
+    get("https://api.soundcloud.com/resolve.json?url=" +  trackPermalinkUrl + "&" + clientParameter,
         function (response) {
-          var trackInfo = JSON.parse(response);
+      var trackInfo = JSON.parse(response);
+      slider.max = trackInfo.duration / 1000;
+      document.getElementById("totalTime").innerHTML = millisecondsToHuman(trackInfo.duration);
+      document.getElementById("artistUrl").href = trackInfo.user.permalink_url;
+      document.getElementById("artistAvatar").src = trackInfo.user.avatar_url;
+      document.getElementById("artistName").innerHTML = trackInfo.user.username;
+      document.getElementById("trackUrl").href = trackInfo.permalink_url;
+      if(trackInfo.artwork_url) {
+        document.getElementById("trackArt").src = trackInfo.artwork_url;
+      } else {
+        document.getElementById("trackArt").src = "";
+      }
+      document.getElementById("trackName").innerHTML = trackInfo.title;
+      streamUrl = trackInfo.stream_url + "?" + clientParameter;
+    }
+       );
+  };
 
-          slider.max = trackInfo.duration / 1000;
-          document.getElementById("totalTime").innerHTML = millisecondsToHuman(trackInfo.duration);
-          document.getElementById("artistUrl").href = trackInfo.user.permalink_url;
-          document.getElementById("artistAvatar").src = trackInfo.user.avatar_url;
-          document.getElementById("artistName").innerHTML = trackInfo.user.username;
+  function startIdleAnimation() {
+    // Makes the sine wave height increase and decrease
+    var amplitude = 100;
+    // Makes the sine wave move to the left
+    var phase = 0;
+    var isIncreasing = false;
+    function drawIdleAnimation() {
+      canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+      if(isIdle) {
+        requestAnimationFrame(drawIdleAnimation);
+      }
+      canvasContext.beginPath();
+      for(var x = 0; x < canvasWidth; x++){
+        canvasContext.lineTo(x, Math.sin((x+phase)/50)*amplitude + 120);
+      }
+      canvasContext.stroke();
+      phase++;
+      if(amplitude > 100) {
+        isIncreasing = false;
+      } else if(amplitude < 1) {
+        isIncreasing = true;
+      }
 
-          document.getElementById("trackUrl").href = trackInfo.permalink_url;
-          if(trackInfo.artwork_url) {
-            document.getElementById("trackArt").src = trackInfo.artwork_url;
-          } else {
-            document.getElementById("trackArt").src = "";
-          }
-          document.getElementById("trackName").innerHTML = trackInfo.title;
-          streamUrl = trackInfo.stream_url + "?" + clientParameter;
-        }
-      );
-    };
+      if(isIncreasing) {
+        amplitude++;
+      } else {
+        amplitude--;
+      }
+    }
 
-    function startIdleAnimation() {
-      // Makes the sine wave height increase and decrease
-      var amplitude = 100;
-      // Makes the sine wave move to the left
-      var phase = 0;
-      var isIncreasing = false;
+    drawIdleAnimation();
+  }
 
-      function drawIdleAnimation() {
-        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
-        if(isIdle) {
-          requestAnimationFrame(drawIdleAnimation);
-        }
+  function startDrawing() {
+    // Stop drawing idle animation
+    isIdle = false;
+    analyser.fftSize = 2048;
+    var bufferLength = analyser.frequencyBinCount;
+    console.log(bufferLength);
+    dataArray = new Uint8Array(bufferLength);
+    canvasContext.lineWidth = 1;
+    canvasContext.strokeStyle = 'rgba(0, 0, 0, 1)';
+    function drawAgain() {
+      canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+      requestAnimationFrame(drawAgain);
+
+      analyser[analyserMethod](dataArray);
+      for(var i = 0; i < bufferLength; i++){
         canvasContext.beginPath();
-        for(var x = 0; x < canvasWidth; x++){
-          canvasContext.lineTo(x, Math.sin((x+phase)/50)*amplitude + 120);
-        }
+        canvasContext.moveTo(i, 255);
+        canvasContext.lineTo(i, 255 - dataArray[i]);
+        canvasContext.closePath();
         canvasContext.stroke();
-        phase++;
-        if(amplitude > 100) {
-          isIncreasing = false;
-        } else if(amplitude < 1) {
-          isIncreasing = true;
-        }
-        
-        if(isIncreasing) {
-          amplitude++;
-        } else {
-          amplitude--;
-        }
       }
-      
-      drawIdleAnimation();
     }
-    
-    function startDrawing() {
-      // Stop drawing idle animation
-      isIdle = false;
-      analyser.fftSize = 2048;
-      var bufferLength = analyser.frequencyBinCount;
-      console.log(bufferLength);
-      dataArray = new Uint8Array(bufferLength);
-      canvasContext.fillStyle = 'rgba(0, 0, 0, 1)';
-      canvasContext.lineWidth = 1;
-      canvasContext.strokeStyle = 'rgba(0, 0, 0, 1)';
 
-      function drawAgain() {
-        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
-        requestAnimationFrame(drawAgain);
-        
-        analyser[analyserMethod](dataArray);
+    drawAgain();
+  }
 
-        for(var i = 0; i < bufferLength; i++){
-          canvasContext.beginPath();
-          canvasContext.moveTo(i, 255);
-          canvasContext.lineTo(i, 255 - dataArray[i]);
-          canvasContext.closePath();
-          canvasContext.stroke();
-        }
-      }
-      
-      drawAgain();
-    }
-      
-    function circles() {
-      // Stop drawing idle animation
-      isIdle = false;
-      analyser.fftSize = 64;
-      var bufferLength = analyser.frequencyBinCount;
-      console.log(bufferLength);
-      dataArray = new Uint8Array(bufferLength);
-      canvasContext.fillStyle = 'rgba(0, 200, 200, 0.8)';
-      canvasContext.lineWidth = 8;
-      canvasContext.strokeStyle = 'rgba(0, 150, 150, 0.8)';
+  function startButton_Clicked() {
+    audio.src = streamUrl;
+    audio.play();
+    slider.value = 0;
+    // Using four seconds so the user can change the value of
+    // the slider. Too short interval will cause the automatic
+    // updating to steal the control from the user.
+    setInterval(function () {
+      slider.value = audio.currentTime; 
+    }, 4000); 
 
-      function circlesAgain() {
-        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
-        requestAnimationFrame(circlesAgain);
-        
-        analyser[analyserMethod](dataArray);
+    var currentTime = document.getElementById("currentTime");
+    setInterval(function () {
+      currentTime.innerHTML = millisecondsToHuman(audio.currentTime * 1000); 
+    }, 1000);
 
-        for(var i = 0; i < bufferLength; i++){
-          canvasContext.beginPath();
-          canvasContext.arc(64+i*32, 128, dataArray[i]/2, 0, 2 * Math.PI, false);
-          canvasContext.fill();
-          canvasContext.stroke();
-        }
-      }
-      
-      circlesAgain();
-    }
-      
-    function startButton_Clicked() {
-      audio.src = streamUrl;
-      audio.play();
-      slider.value = 0;
+    startDrawing();
+  }
 
-      setInterval(function () {
-        slider.value = audio.currentTime; 
-      }, 3000); 
-      // Using three seconds so the user can change the value of
-      // the slider. Too short interval will cause the automatic
-      // updating to steal the control from the user.
-      
-      var currentTime = document.getElementById("currentTime");
-      setInterval(function () {
-        currentTime.innerHTML = millisecondsToHuman(audio.currentTime * 1000); 
-      }, 1000);
-      
-      startDrawing();
-    }
-    
-    function jumpTo(here) {
-      if (!audio.readyState) return false;
-      audio.currentTime = here;
-    };
-    
-    slider.addEventListener("change", function () {
-      jumpTo(this.value);
-    });
-    
-    function millisecondsToHuman(milliseconds) {
-      var date = new Date(null);
-      date.setMilliseconds(milliseconds);
-      return date.toISOString().substr(11, 8);
-    };
+  function jumpTo(here) {
+    if (!audio.readyState) return false;
+    audio.currentTime = here;
+  };
 
-    document.getElementById("playButton").addEventListener('click', startButton_Clicked);
-    
-    document.getElementById("oscilloscopeButton").addEventListener('click', function(){
-      analyserMethod = "getByteTimeDomainData";
-      startDrawing();
-    });
-    
-    document.getElementById("frequencyBarsButton").addEventListener('click', function(){
-      analyserMethod = "getByteFrequencyData";
-      startDrawing();
-    });
-    
-    document.getElementById("circlesButton").addEventListener('click', function(){
-      analyserMethod = "getByteFrequencyData";
-      circles();
-    });
-    
-    document.getElementById("findButton").addEventListener('click', function(){
-      trackPermalinkUrl = document.getElementById("trackUrlSearch").value;
-      findTrack();
-    });
-    
-    startIdleAnimation();
+  slider.addEventListener("change", function () {
+    jumpTo(this.value);
+  });
+
+  function millisecondsToHuman(milliseconds) {
+    var date = new Date(null);
+    date.setMilliseconds(milliseconds);
+    return date.toISOString().substr(11, 8);
+  };
+  document.getElementById("playButton").addEventListener("click", startButton_Clicked);
+
+  document.getElementById("oscilloscopeButton").addEventListener("click", function(){
+    analyserMethod = "getByteTimeDomainData";
+    startDrawing();
+  });
+
+  document.getElementById("frequencyBarsButton").addEventListener("click", function(){
+    analyserMethod = "getByteFrequencyData";
+    startDrawing();
+  });
+
+  document.getElementById("findButton").addEventListener("click", function(){
+    trackPermalinkUrl = document.getElementById("trackUrlSearch").value;
     findTrack();
-    initAudio();
-  
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  });
 
-    ga('create', 'UA-42639091-3', 'auto');
-    ga('send', 'pageview');
-
+  startIdleAnimation();
+  findTrack();
+  initAudio();
 })();
-  
+
 </script>
   
 </body>
